@@ -1,0 +1,17 @@
+---
+- name: Create the netplan file
+  template:
+    src: 51_fixed_ip.yaml.j2
+    dest: "51_fixed_ip_{{ item }}.yaml"
+    lstrip_blocks : yes
+  vars:
+    - fixed_ip: "{{ hostvars[item]['ansible_host'] }}"
+
+- name: Send the created netplan file
+  shell: "multipass transfer 51_fixed_ip_{{ item }}.yaml {{ item }}:/tmp/"
+
+- name: Put the created netplan file in the right location
+  shell: "multipass exec {{ item }} sudo mv /tmp/51_fixed_ip_{{ item }}.yaml /etc/netplan/"
+
+- name: Recalculate IP addresses
+  shell: "multipass exec {{ item }} sudo netplan apply"
