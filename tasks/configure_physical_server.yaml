@@ -1,0 +1,6 @@
+---
+- name: Use provided SSH key
+  ansible.builtin.copy:
+    src: /home/nicolas/.ssh/id_rsa_nwa
+    dest: /var/snap/multipass/common/data/multipassd/ssh-keys/id_rsa
+  become: yes

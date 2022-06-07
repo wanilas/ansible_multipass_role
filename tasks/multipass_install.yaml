@@ -1,0 +1,61 @@
+---
+- name: Make sure snap is installed
+  apt:
+    name: snap
+    state: present
+  become: true
+
+- name: Install LXD
+  apt:
+    name: lxd
+    state: present
+  become: true
+
+- name: Install Multipass
+  community.general.snap:
+    name: multipass
+    state: present
+  become: true
+  register: snap_installation_output
+
+- name: Fix multipass installation if multipass was already installed before
+  shell: "{{ item }}"
+  with_items:
+    - rm /var/snap/multipass/common/data/multipassd/authenticated-certs/multipass_client_certs.pem
+    - cp ~/snap/multipass/current/data/multipass-client-certificate/multipass_cert.pem /var/snap/multipass/common/data/multipassd/authenticated-certs/multipass_client_certs.pem
+  become: yes
+  when:
+    - 'snap_installation_output.snaps_installed is defined'
+    - '"multipass" in snap_installation_output.snaps_installed'
+
+- name: Pause for 1 minutes to make sure multipass is available
+  pause:
+    minutes: 1
+  when:
+    - 'snap_installation_output.snaps_installed is defined'
+    - '"multipass" in snap_installation_output.snaps_installed'
+
+- name: Configure Multipass authentication if new installation
+  shell: "multipass set local.passphrase={{ multipass_authentication }}"
+  become: true
+  when:
+    - 'snap_installation_output.snaps_installed is defined'
+    - '"multipass" in snap_installation_output.snaps_installed'
+
+- name: Configure Multipass authentication if new installation
+  shell: "multipass authenticate {{ multipass_authentication }}"
+  when:
+    - 'snap_installation_output.snaps_installed is defined'
+    - '"multipass" in snap_installation_output.snaps_installed'
+
+- name: Configure LXD as Multipass network driver
+  shell: multipass set local.driver=lxd
+  become: true
+
+- name: Configure host network
+  shell: "echo $'network:\n  version: 2\n  renderer: NetworkManager' > /etc/netplan/00-installer-config.yaml"
+  become: true
+
+#- name: Reboot the physical server
+#  reboot:
+#  become: true

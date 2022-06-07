@@ -1,0 +1,28 @@
+---
+- name: Check VM existence in physical servers
+  include_tasks: check_virtual_server_existance.yaml
+  with_items: "{{ groups['physical_servers'] }}"
+  vars: 
+    not_existing_vm: []
+    existing_vm: []
+  loop_control:
+    loop_var: physical_server_item
+
+- name: Print VM to deploy
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ not_existing_vm }}"
+  when: not_existing_vm is defined
+
+- name: Prompt to confirm
+  pause:
+    prompt: Please confirm you want to create specified VM. Press return to continue. Press Ctrl+c and then "a" to abort
+
+- name: Deploy
+  shell: multipass launch --name "{{ hostvars[item]['inventory_hostname'] }}" --cpus {{ hostvars[item]['resources']['cpus'] }} --mem {{ hostvars[item]['resources']['memory'] }} --disk {{ hostvars[item]['resources']['disk'] }} --network eno1
+  with_items: "{{ not_existing_vm }}"
+  when: not_existing_vm is defined
+
+- name: Configure newly created VM
+  include_tasks: configure_virtual_server.yaml
+  with_items: "{{ groups['virtual_servers'] }}"

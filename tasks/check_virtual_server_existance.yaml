@@ -1,0 +1,20 @@
+---
+- name: "Retrieve existing VM in {{ physical_server_item }}"
+  shell: multipass list
+  register: list_of_vm
+
+- name: Print list output
+  debug:
+    msg: "{{ list_of_vm.stdout }}"
+
+- name: Return not existing VM
+  set_fact:
+    not_existing_vm: "{{ not_existing_vm + [item] }}"
+  with_items: "{{ groups['virtual_servers'] }}"
+  when: "hostvars[item]['inventory_hostname'] not in list_of_vm.stdout"
+
+- name: Return existing VM
+  set_fact:
+    existing_vm: "{{ existing_vm + [item] }}"
+  with_items: "{{ groups['virtual_servers'] }}"
+  when: "hostvars[item]['inventory_hostname'] in list_of_vm.stdout"
