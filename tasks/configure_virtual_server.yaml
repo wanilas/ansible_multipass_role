@@ -5,13 +5,30 @@
     dest: "51_fixed_ip_{{ item }}.yaml"
     lstrip_blocks : yes
   vars:
-    - fixed_ip: "{{ hostvars[item]['ansible_host'] }}"
+    - fixed_ip_enp5: "{{ hostvars[item]['ansible_host'] }}"
 
 - name: Send the created netplan file
-  shell: "multipass transfer 51_fixed_ip_{{ item }}.yaml {{ item }}:/tmp/"
+  shell: "lxc file push 51_fixed_ip_{{ item }}.yaml {{ item }}/tmp/"
 
 - name: Put the created netplan file in the right location
-  shell: "multipass exec {{ item }} sudo mv /tmp/51_fixed_ip_{{ item }}.yaml /etc/netplan/"
+  shell: "lxc exec {{ item }} -- sudo mv /tmp/51_fixed_ip_{{ item }}.yaml /etc/netplan/10-lxc.yaml"
 
 - name: Recalculate IP addresses
-  shell: "multipass exec {{ item }} sudo netplan apply"
+  shell: "lxc exec {{ item }} -- sudo netplan apply"
+
+- name: Install openssh-server
+  shell: "lxc exec {{ item }} -- sudo apt-get install openssh-server -y"
+
+- name: Deploy ssh key
+  shell: |
+    lxc exec {{ item }} -- mkdir /home/ubuntu/.ssh/
+  ignore_errors: true
+
+- name: Deploy ssh key
+  shell: |
+    lxc exec {{ item }} -- touch /home/ubuntu/.ssh/authorized_keys
+  ignore_errors: true
+
+- name: Deploy ssh key
+  shell: |
+    lxc exec {{ item }} -- sh -c "echo -n {{lookup('file', '/home/nicolas/.ssh/id_rsa_nwa.pub') }} >> /home/ubuntu/.ssh/authorized_keys"

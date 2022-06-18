@@ -18,8 +18,18 @@
   pause:
     prompt: Please confirm you want to create specified VM. Press return to continue. Press Ctrl+c and then "a" to abort
 
-- name: Deploy
-  shell: multipass launch --name "{{ hostvars[item]['inventory_hostname'] }}" --cpus {{ hostvars[item]['resources']['cpus'] }} --mem {{ hostvars[item]['resources']['memory'] }} --disk {{ hostvars[item]['resources']['disk'] }} --network eno1
+- name: Initialize {{ item }} virtual server
+  shell: lxc init images:ubuntu/20.04 "{{ hostvars[item]['inventory_hostname'] }}" --vm --storage kubernetes --config limits.cpu={{ hostvars[item]['resources']['cpus'] }} --config limits.memory={{ hostvars[item]['resources']['memory'] }} --network br-eno1
+  with_items: "{{ not_existing_vm }}"
+  when: not_existing_vm is defined
+
+- name: Redefine root size of {{ item }} virtual server
+  shell: lxc config device set "{{ item }}" root size="{{ hostvars[item]['resources']['disk'] }}"
+  with_items: "{{ not_existing_vm }}"
+  when: not_existing_vm is defined
+
+- name: Start {{ item }} virtual server
+  shell: lxc start "{{ item }}"
   with_items: "{{ not_existing_vm }}"
   when: not_existing_vm is defined
 

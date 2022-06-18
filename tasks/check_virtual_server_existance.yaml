@@ -1,6 +1,6 @@
 ---
 - name: "Retrieve existing VM in {{ physical_server_item }}"
-  shell: multipass list
+  shell: lxc list
   register: list_of_vm
 
 - name: Print list output

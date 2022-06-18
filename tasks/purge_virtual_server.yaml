@@ -18,17 +18,13 @@
   pause:
     prompt: Please confirm you want to delete specified VM. Press return to continue. Press Ctrl+c and then "a" to abort
 
-- name: Stop VM to delete
-  shell: multipass stop "{{ hostvars[item]['inventory_hostname'] }}"
+- name: Purge VM
+  shell: lxc stop "{{ hostvars[item]['inventory_hostname'] }}"
   with_items: "{{ existing_vm }}"
   when: existing_vm is defined
-
-- name: Delete VM to delete
-  shell: multipass delete "{{ hostvars[item]['inventory_hostname'] }}"
-  with_items: "{{ existing_vm }}"
-  when: existing_vm is defined
+  ignore_errors: true
 
 - name: Purge VM
-  shell: multipass purge
-  with_items: "{{ groups['virtual_servers'] }}"
+  shell: lxc delete "{{ hostvars[item]['inventory_hostname'] }}"
+  with_items: "{{ existing_vm }}"
   when: existing_vm is defined
