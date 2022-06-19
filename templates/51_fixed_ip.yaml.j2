@@ -1,6 +1,12 @@
 network:
+  version: 2
   ethernets:
-    enp6s0:
+    enp5s0:
+      dhcp4: no
       addresses:
         - {{ fixed_ip }}/24
-  version: 2
+      gateway4: 192.168.0.125
+      nameservers:
+        addresses:
+          - 8.8.8.8
+          - 1.1.1.1
