@@ -1,0 +1,44 @@
+---
+- name: Check profiles existence in physical servers
+  include_tasks: check_profile_existance.yaml
+  with_items: "{{ groups['physical_servers'] }}"
+  vars:
+    not_existing_profiles: []
+    existing_profiles: []
+  loop_control:
+    loop_var: physical_server_item
+
+- name: Print not existing profiles
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ not_existing_profiles }}"
+  when: not_existing_profiles is defined
+
+- name: Prompt to confirm
+  pause:
+    prompt: Please confirm you want to create specified Profiles. Press return to continue. Press Ctrl+c and then "a" to abort
+
+- name: Create cpu limit in needed profiles
+  shell: "lxc profile create {{ item }}"
+  with_items: "{{ not_existing_profiles }}"
+  when: not_existing_profiles is defined
+
+- name: Configure cpu limit needed profiles
+  shell: "lxc profile set {{ item }} limits.cpu {{ profiles[item]['cpus'] }}"
+  with_items: "{{ not_existing_profiles }}"
+  when: not_existing_profiles is defined
+
+- name: Configure memory limit needed profiles
+  shell: "lxc profile set {{ item }} limits.memory {{ profiles[item]['memory'] }}"
+  with_items: "{{ not_existing_profiles }}"
+  when: not_existing_profiles is defined
+
+- name: Add root disk in needed profiles
+  shell: "lxc profile device add {{ item }} root disk path=/ pool=kubernetes size={{ profiles[item]['disk'] }}"
+  with_items: "{{ not_existing_profiles }}"
+  when: not_existing_profiles is defined
+
+- name: Add etho0 nic in needed profiles
+  shell: "lxc profile device add {{ item }} eth0 nic name=eth0 nictype=bridged parent=br-eno1"
+  with_items: "{{ not_existing_profiles }}"
+  when: not_existing_profiles is defined

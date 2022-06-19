@@ -1,0 +1,16 @@
+---
+- name: "Retrieve existing profiles in {{ physical_server_item }}"
+  shell: lxc profile list
+  register: list_of_profiles
+
+- name: Return not existing profiles
+  set_fact:
+    not_existing_profiles: "{{ not_existing_profiles + [item] }}"
+  with_items: "{{ profiles }}"
+  when: "item not in list_of_profiles.stdout"
+
+- name: Return existing profiles
+  set_fact:
+    existing_profiles: "{{ existing_profiles + [item] }}"
+  with_items: "{{ profiles }}"
+  when: "item in list_of_profiles.stdout"

@@ -13,6 +13,18 @@
     - purge_vm
     - never
 
+- name: Purge profiles
+  import_tasks: purge_lxd_profiles.yaml
+  tags:
+    - purge_vm
+    - never
+
+- name: Create needed profiles
+  import_tasks: create_lxd_profiles.yaml
+  tags:
+    - create_vm
+    - never
+
 - name: Deploy virtual servers
   import_tasks: deploy_virtual_server.yaml
   tags:
