@@ -18,18 +18,8 @@
   pause:
     prompt: Please confirm you want to create specified VM. Press return to continue. Press Ctrl+c and then "a" to abort
 
-- name: Initialize {{ item }} virtual server
-  shell: lxc init images:ubuntu/20.04 "{{ hostvars[item]['inventory_hostname'] }}" --vm --storage kubernetes --config limits.cpu={{ hostvars[item]['resources']['cpus'] }} --config limits.memory={{ hostvars[item]['resources']['memory'] }} --network br-eno1
-  with_items: "{{ not_existing_vm }}"
-  when: not_existing_vm is defined
-
-- name: Redefine root size of {{ item }} virtual server
-  shell: lxc config device set "{{ item }}" root size="{{ hostvars[item]['resources']['disk'] }}"
-  with_items: "{{ not_existing_vm }}"
-  when: not_existing_vm is defined
-
-- name: Start {{ item }} virtual server
-  shell: lxc start "{{ item }}"
+- name: Initialize and start {{ item }} virtual server
+  shell: lxc launch images:ubuntu/focal/cloud "{{ hostvars[item]['inventory_hostname'] }}" --vm --storage kubernetes --profile {{ hostvars[item]['resources']['profile'] }} --config limits.cpu={{ hostvars[item]['resources']['cpus'] }} --config limits.memory={{ hostvars[item]['resources']['memory'] }} --network br-eno1
   with_items: "{{ not_existing_vm }}"
   when: not_existing_vm is defined
 

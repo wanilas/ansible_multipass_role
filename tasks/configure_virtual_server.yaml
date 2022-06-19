@@ -5,7 +5,7 @@
     dest: "51_fixed_ip_{{ item }}.yaml"
     lstrip_blocks : yes
   vars:
-    - fixed_ip_enp5: "{{ hostvars[item]['ansible_host'] }}"
+    - fixed_ip: "{{ hostvars[item]['ansible_host'] }}"
 
 - name: Send the created netplan file
   shell: "lxc file push 51_fixed_ip_{{ item }}.yaml {{ item }}/tmp/"
